@@ -43,11 +43,14 @@ class _MemoListScreenState extends State<MemoListScreen> {
   int? selectedMemoIndex;
   List<Memo>? selectedColumnMemos;
 
+  /// 텍스트 에디터를 위한 2개의 컨트롤러
   TextEditingController? titleController;
   TextEditingController? contentController;
 
-  // Memo 추가, 선택, 삭제를 위한 공통 함수
+  /// 메모 리스트에 새로운 메모를 추가하는 메서드.
+  /// 메모를 추가한 뒤 해당 메모를 선택하도록 설정.
   void _addMemo(List<Memo> memoList) {
+    
     setState(() {
       memoList.add(Memo(
         title: '', 
@@ -58,6 +61,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
     });
   }
 
+  /// 메모리스트를 선택하면, 텍스트 에디터를 업데이트하는 메서드.
   void _updateControllers(List<Memo> memoList) {
     if (selectedMemoIndex != null) {
       titleController = TextEditingController(text: memoList[selectedMemoIndex!].title);
@@ -65,6 +69,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
     }
   }
 
+  /// 메모를 삭제하는 메서드. 텍스트 에디터도 초기화된다.
   void _deleteMemo(int index, List<Memo> memoList) {
     setState(() {
       memoList.removeAt(index);
@@ -75,6 +80,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
     });
   }
 
+  /// 메모를 선택하면, 선택된 메모의 인덱스와 메모 리스트를 업데이트한다.
   void _selectMemo(int index, List<Memo> memoList) {
     setState(() {
       selectedMemoIndex = index;
@@ -112,7 +118,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
     );
   }
 
-  // 오른쪽에 텍스트 에디터를 빌드하는 메서드
+  /// 위젯의 오른쪽에 텍스트 에디터를 빌드하는 메서드
   Widget _buildEditorPane() {
     return selectedMemoIndex != null && selectedColumnMemos != null
         ? Expanded(
@@ -162,7 +168,62 @@ class _MemoListScreenState extends State<MemoListScreen> {
   }
 }
 
-// MemoColumn 커스텀 위젯
+
+/// MemoCard 커스텀 위젯
+class MemoCard extends StatelessWidget {
+  final Memo memo;
+  final Function() onDelete;
+  final Function() onSelect;
+
+  MemoCard({
+    super.key,
+    required this.memo,
+    required this.onDelete,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.all(8.0),  // 카드의 외부 여백 설정
+      elevation: 4,
+      child: ListTile(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              memo.title.isNotEmpty ? memo.title : 'New Memo',
+              style: TextStyle(
+                fontWeight: memo.title.isNotEmpty ? FontWeight.bold : FontWeight.normal,
+                color: memo.title.isNotEmpty ? Colors.black : Colors.grey,
+              ),
+            ),
+            SizedBox(height: 4.0),  // title과 subtitle 사이의 간격
+            Text(memo.content),
+            SizedBox(height: 8.0),  // subtitle과 날짜/삭제 버튼 사이의 간격
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  DateFormat('yy, MMM d, HH:mm').format(memo.lastEdited),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: onDelete,
+                  iconSize: 20.0,  // 아이콘 크기를 작게 설정
+                ),
+              ],
+            ),
+          ],
+        ),
+        onTap: onSelect,
+      ),
+    );
+  }
+}
+
+/// MemoColumn 커스텀 위젯
 class MemoColumn extends StatelessWidget {
   final String title;
   final List<Memo> memos;
@@ -170,7 +231,8 @@ class MemoColumn extends StatelessWidget {
   final Function(int) onSelect;
   final VoidCallback onAdd;
 
-  MemoColumn({super.key, 
+  MemoColumn({
+    super.key,
     required this.title,
     required this.memos,
     required this.onDelete,
@@ -181,75 +243,52 @@ class MemoColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Column(
-        children: [
-          Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          SizedBox(height: 10),
-          Flexible(
-            child: ListView.builder(
-              shrinkWrap: true, 
-              itemCount: memos.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.all(8.0),
-                  elevation: 4,
-                  child: ListTile(
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          memos[index].title.isNotEmpty
-                              ? memos[index].title
-                              : 'New Memo',
-                          style: TextStyle(
-                            fontWeight: memos[index].title.isNotEmpty
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: memos[index].title.isNotEmpty
-                                ? Colors.black
-                                : Colors.grey,
-                          ),
-                        ),
-                        SizedBox(height: 4.0),  // title과 subtitle 사이의 간격
-                        Text(memos[index].content),
-                        SizedBox(height: 8.0),  // subtitle과 날짜/삭제 버튼 사이의 간격
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              DateFormat('yy, MMM d, HH:mm').format(memos[index].lastEdited),
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () => onDelete(index),
-                              iconSize: 20.0,  // 아이콘 크기를 작게 설정
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    onTap: () => onSelect(index),
-                  ),
-                );
-              },
+      child: Container(
+        margin: const EdgeInsets.all(8.0),  // 외부 여백
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 255, 250, 253),  // 배경색
+          borderRadius: BorderRadius.circular(16.0),  // 둥근 모서리 설정
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,  // 그림자 색상
+              blurRadius: 8.0,  // 그림자의 흐림 정도
+              offset: Offset(0, 4),  // 그림자의 위치
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton.icon(
-              onPressed: onAdd,
-              icon: Icon(Icons.add),
-              label: Text("Add Memo"),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          ],
+        ),
+        child: Column(
+          children: [
+            Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 10),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true, 
+                itemCount: memos.length,
+                itemBuilder: (context, index) {
+                  return MemoCard(
+                    memo: memos[index],
+                    onDelete: () => onDelete(index),
+                    onSelect: () => onSelect(index),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton.icon(
+                onPressed: onAdd,
+                icon: Icon(Icons.add),
+                label: Text("Add Memo"),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

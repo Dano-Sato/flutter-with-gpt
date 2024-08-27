@@ -261,7 +261,7 @@ class MemoColumn extends StatelessWidget {
             Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
             Flexible(
-              child: ListView.builder(
+              child: ListView.builder( // ListView로 스크롤 가능한 메모 카드의 리스트 생성
                 shrinkWrap: true, 
                 itemCount: memos.length,
                 itemBuilder: (context, index) {
@@ -275,7 +275,7 @@ class MemoColumn extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton.icon(
+              child: ElevatedButton.icon( // 메모 추가 버튼
                 onPressed: onAdd,
                 icon: Icon(Icons.add),
                 label: Text("Add Memo"),

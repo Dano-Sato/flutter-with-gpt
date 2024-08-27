@@ -119,7 +119,12 @@ class _MemoListScreenState extends State<MemoListScreen> {
                         margin: EdgeInsets.all(8.0),  // 카드의 외부 여백 설정
                         elevation: 4,  // 카드의 그림자 깊이 설정
                         child: ListTile(
-                          title: Text(memos[index].title),  // 메모의 제목을 표시
+                          title: Text(memos[index].title.isNotEmpty ? memos[index].title : 'New Memo',
+                          style: TextStyle(
+                            fontWeight: memos[index].title.isNotEmpty ? FontWeight.bold : FontWeight.normal, // 제목의 글씨체를 굵게 설정
+                            color: memos[index].title.isNotEmpty ? Colors.black : Colors.grey,  // 힌트 텍스트의 색상 설정
+                          )
+                          ),  // 메모의 제목을 표시
                           subtitle: Text(memos[index].content),  // 메모의 내용을 표시
                           onTap: () {
                             setState(() {
@@ -195,6 +200,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
                             onChanged: _updateMemoContent,  // 내용이 변경될 때 호출되는 함수
                             maxLines: null,  // 줄 수 제한 없음
                             expands: true,  // TextField가 가능한 모든 공간을 차지하도록 설정
+                            textAlignVertical: TextAlignVertical.top,  // 텍스트를 상단에 정렬
                           ),
                         ),
                       ],

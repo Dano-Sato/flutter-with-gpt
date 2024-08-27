@@ -26,10 +26,20 @@ class DragDropExample extends StatefulWidget {
   _DragDropExampleState createState() => _DragDropExampleState();
 }
 
+class Memo {
+  String title;
+  String content;
+  DateTime lastEdited;
+  int index;
+
+  Memo({required this.title, required this.content, required this.lastEdited, required this.index});
+}
+
+
 class _DragDropExampleState extends State<DragDropExample> {
-  List<String> list1 = ['Item 1', 'Item 2', 'Item 3'];
-  List<String> list2 = ['Item 4', 'Item 5', 'Item 6'];
-  List<String> list3 = ['Item 7', 'Item 8', 'Item 9'];
+  List<Memo> list1 = [Memo(title: 'Item 1', content: 'Content 1', lastEdited: DateTime.now(), index: 0)];
+  List<Memo> list2 = [Memo(title: 'Item 4', content: 'Content 4', lastEdited: DateTime.now(), index: 3)];
+  List<Memo> list3 = [Memo(title: 'Item 7', content: 'Content 7', lastEdited: DateTime.now(), index: 6)];
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +65,8 @@ Offset myDragAnchorStrategy(
 }
 
 /// 드래그가 가능한 카드 위젯.
-Widget myCard(String item, VoidCallback onDragCompleted) {
-  return Draggable<String>(
+Widget myCard(Memo item, VoidCallback onDragCompleted) {
+  return Draggable<Memo>(
     data: item,
     dragAnchorStrategy: myDragAnchorStrategy,
     feedback: Card( // 드래그할 때 옮겨지는 상태의 위젯
@@ -74,7 +84,7 @@ Widget myCard(String item, VoidCallback onDragCompleted) {
             ),
           ],
         ),
-        child: Center(child: Text(item, style: TextStyle(color: Colors.black))),
+        child: Center(child: Text(item.title, style: TextStyle(color: Colors.black))),
       ),
     ),
     childWhenDragging: Container( // 드래그 중에는 이 위젯이 드래그 대상 대신 표시됨
@@ -85,14 +95,15 @@ Widget myCard(String item, VoidCallback onDragCompleted) {
     onDragCompleted: onDragCompleted,
     child: Card(
       child: ListTile(
-        title: Text(item),
+        title: Text(item.title),
+        subtitle: Text(item.content),
       ),
     ),
   );
 }
 
-Widget myList(List<String> list, String title) {
-  return DragTarget<String>(
+Widget myList(List<Memo> list, String title) {
+  return DragTarget<Memo>(
     onAcceptWithDetails: (data) {
       setState(() {
         list.add(data.data);
@@ -110,7 +121,7 @@ Widget myList(List<String> list, String title) {
               itemCount: list.length,
               itemBuilder: (context, index) {
                 return myCard(
-                  list[index],
+                  Memo(content: list[index].content, title: list[index].title, lastEdited: DateTime.now(), index: index),
                   () {
                     setState(() {
                       list.removeAt(index);

@@ -21,15 +21,11 @@ class MyApp extends StatelessWidget {
 }
 
 class Memo {
-  String title;    // 메모의 제목을 저장하는 변수
-  String content;  // 메모의 내용을 저장하는 변수
-  DateTime lastEdited;  // 마지막으로 편집된 시간을 저장하는 변수
+  String title;
+  String content;
+  DateTime lastEdited;
 
-  Memo({
-    required this.title,
-    required this.content,
-    required this.lastEdited,
-  });
+  Memo({required this.title, required this.content, required this.lastEdited});
 }
 
 class MemoListScreen extends StatefulWidget {
@@ -40,59 +36,51 @@ class MemoListScreen extends StatefulWidget {
 }
 
 class _MemoListScreenState extends State<MemoListScreen> {
-  List<Memo> memos = [];                // 메모 목록을 저장하는 리스트
-  int? selectedMemoIndex;               // 현재 선택된 메모의 인덱스를 저장하는 변수
-  TextEditingController? titleController;    // 제목을 제어하는 TextEditingController
-  TextEditingController? contentController;  // 내용을 제어하는 TextEditingController
+  List<Memo> routines = [];
+  List<Memo> done = [];
+  List<Memo> ongoing = [];
+  List<Memo> toDo = [];
 
-  // 새 메모를 추가하는 함수
-  void _addMemo() {
+  int? selectedMemoIndex;
+  List<Memo>? selectedColumnMemos;
+
+  TextEditingController? titleController;
+  TextEditingController? contentController;
+
+  // Memo 추가, 선택, 삭제를 위한 공통 함수
+  void _addMemo(List<Memo> memoList) {
     setState(() {
-      memos.add(Memo(
+      memoList.add(Memo(
         title: '', 
         content: '',
-        lastEdited: DateTime.now(),  // 새 메모의 마지막 편집 시간을 현재 시간으로 설정
-      ));  
-      selectedMemoIndex = memos.length - 1;  // 새 메모를 선택된 메모로 설정
-      _updateControllers();  // TextEditingController 업데이트
+        lastEdited: DateTime.now(),
+      ));
+      _selectMemo(memoList.length - 1, memoList);
     });
   }
 
-  // TextEditingController를 현재 선택된 메모의 값으로 업데이트하는 함수
-  void _updateControllers() {
+  void _updateControllers(List<Memo> memoList) {
     if (selectedMemoIndex != null) {
-      titleController = TextEditingController(text: memos[selectedMemoIndex!].title);
-      contentController = TextEditingController(text: memos[selectedMemoIndex!].content);
+      titleController = TextEditingController(text: memoList[selectedMemoIndex!].title);
+      contentController = TextEditingController(text: memoList[selectedMemoIndex!].content);
     }
   }
 
-  // 메모의 제목을 업데이트하는 함수
-  void _updateMemoTitle(String title) {
-    if (selectedMemoIndex != null) {
-      setState(() {
-        memos[selectedMemoIndex!].title = title;  // 선택된 메모의 제목을 업데이트
-        memos[selectedMemoIndex!].lastEdited = DateTime.now();  // 마지막 편집 시간 업데이트
-      });
-    }
-  }
-
-  // 메모의 내용을 업데이트하는 함수
-  void _updateMemoContent(String content) {
-    if (selectedMemoIndex != null) {
-      setState(() {
-        memos[selectedMemoIndex!].content = content;  // 선택된 메모의 내용을 업데이트
-        memos[selectedMemoIndex!].lastEdited = DateTime.now();  // 마지막 편집 시간 업데이트
-      });
-    }
-  }
-
-  // 메모를 삭제하는 함수
-  void _deleteMemo(int index) {
+  void _deleteMemo(int index, List<Memo> memoList) {
     setState(() {
-      memos.removeAt(index);  // 메모를 목록에서 삭제
-      selectedMemoIndex = null;  // 선택된 메모를 초기화
-      titleController = null;  // 제목 컨트롤러 초기화
-      contentController = null;  // 내용 컨트롤러 초기화
+      memoList.removeAt(index);
+      selectedMemoIndex = null;
+      selectedColumnMemos = null;
+      titleController = null;
+      contentController = null;
+    });
+  }
+
+  void _selectMemo(int index, List<Memo> memoList) {
+    setState(() {
+      selectedMemoIndex = index;
+      selectedColumnMemos = memoList;
+      _updateControllers(memoList);
     });
   }
 
@@ -100,113 +88,168 @@ class _MemoListScreenState extends State<MemoListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Memo App'),  // 앱의 제목을 표시
+        title: Text('Memo App'),
       ),
       body: Row(
         children: [
-          // 메모 리스트를 표시하는 왼쪽 영역
-          Expanded(
-            flex: 2,  // 왼쪽 영역의 비율을 설정
-            child: Column(
-              children: [
-                // 메모 리스트를 표시하는 ListView.builder
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,  // 리스트가 필요한 만큼만 공간을 차지하도록 설정
-                    itemCount: memos.length,  // 메모의 개수를 설정
-                    itemBuilder: (context, index) {
-                      return Card(
-                        margin: EdgeInsets.all(8.0),  // 카드의 외부 여백 설정
-                        elevation: 4,  // 카드의 그림자 깊이 설정
-                        child: ListTile(
-                          title: Text(memos[index].title.isNotEmpty ? memos[index].title : 'New Memo',
-                          style: TextStyle(
-                            fontWeight: memos[index].title.isNotEmpty ? FontWeight.bold : FontWeight.normal, // 제목의 글씨체를 굵게 설정
-                            color: memos[index].title.isNotEmpty ? Colors.black : Colors.grey,  // 힌트 텍스트의 색상 설정
-                          )
-                          ),  // 메모의 제목을 표시
-                          subtitle: Text(memos[index].content),  // 메모의 내용을 표시
-                          onTap: () {
-                            setState(() {
-                              selectedMemoIndex = index;  // 선택된 메모의 인덱스 설정
-                              _updateControllers();  // TextEditingController 업데이트
-                            });
-                          },
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,  // Row가 필요한 만큼의 최소 크기를 가집니다.
-                            children: [
-                              Text(
-                                DateFormat('yy, MMM d, HH:mm').format(memos[index].lastEdited),  // 마지막 편집 시간을 표시
-                                style: TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                              SizedBox(width: 8.0),  // 텍스트와 아이콘 사이의 간격
-                              IconButton(
-                                icon: Icon(Icons.delete),  // 삭제 버튼 아이콘
-                                onPressed: () => _deleteMemo(index),  // 삭제 함수 호출
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+          _buildMemoColumn('Routines', routines),
+          _buildMemoColumn('Done', done),
+          _buildMemoColumn('Ongoing', ongoing),
+          _buildMemoColumn('To do', toDo),
+          VerticalDivider(),
+          _buildEditorPane(),
+        ],
+      ),
+    );
+  }
+
+  // MemoColumn을 빌드하는 메서드로 코드 간소화
+  Widget _buildMemoColumn(String title, List<Memo> memos) {
+    return MemoColumn(
+      title: title,
+      memos: memos,
+      onDelete: (index) => _deleteMemo(index, memos),
+      onSelect: (index) => _selectMemo(index, memos),
+      onAdd: () => _addMemo(memos),
+    );
+  }
+
+  // 오른쪽에 텍스트 에디터를 빌드하는 메서드
+  Widget _buildEditorPane() {
+    return selectedMemoIndex != null && selectedColumnMemos != null
+        ? Expanded(
+            flex: 1,  // 메모가 선택된 경우 에디터의 비율
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Title',
+                      border: OutlineInputBorder(),
+                    ),
+                    controller: titleController,
+                    onChanged: (text) {
+                      setState(() {
+                        selectedColumnMemos![selectedMemoIndex!].title = text;
+                        selectedColumnMemos![selectedMemoIndex!].lastEdited = DateTime.now();
+                      });
                     },
                   ),
-                ),
-                // 메모를 추가하는 버튼
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    onPressed: _addMemo,  // 메모 추가 함수 호출
-                    icon: Icon(Icons.add),  // 아이콘 설정
-                    label: Text("Add Memo"),  // 버튼의 텍스트 설정
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),  // 버튼 내부 여백 설정
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),  // 버튼의 모서리를 둥글게 설정
+                  SizedBox(height: 16),
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Content',
+                        border: OutlineInputBorder(),
                       ),
+                      controller: contentController,
+                      onChanged: (text) {
+                        setState(() {
+                          selectedColumnMemos![selectedMemoIndex!].content = text;
+                          selectedColumnMemos![selectedMemoIndex!].lastEdited = DateTime.now();
+                        });
+                      },
+                      maxLines: null,
+                      expands: true,
+                      textAlignVertical: TextAlignVertical.top,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          VerticalDivider(),  // 왼쪽과 오른쪽 영역을 구분하는 구분선
-          // 메모 내용을 편집하는 오른쪽 영역
-          Expanded(
-            flex: 3,  // 오른쪽 영역의 비율을 설정
-            child: selectedMemoIndex != null
-                ? Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
+          )
+        : SizedBox.shrink(); // 메모가 선택되지 않은 경우, 에디터를 숨김
+  }
+}
+
+// MemoColumn 커스텀 위젯
+class MemoColumn extends StatelessWidget {
+  final String title;
+  final List<Memo> memos;
+  final Function(int) onDelete;
+  final Function(int) onSelect;
+  final VoidCallback onAdd;
+
+  MemoColumn({super.key, 
+    required this.title,
+    required this.memos,
+    required this.onDelete,
+    required this.onSelect,
+    required this.onAdd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          SizedBox(height: 10),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true, 
+              itemCount: memos.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.all(8.0),
+                  elevation: 4,
+                  child: ListTile(
+                    title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 메모의 제목을 입력하는 TextField
-                        TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Title',  // 라벨 텍스트 설정
-                            border: OutlineInputBorder(),  // 테두리 스타일 설정
+                        Text(
+                          memos[index].title.isNotEmpty
+                              ? memos[index].title
+                              : 'New Memo',
+                          style: TextStyle(
+                            fontWeight: memos[index].title.isNotEmpty
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: memos[index].title.isNotEmpty
+                                ? Colors.black
+                                : Colors.grey,
                           ),
-                          controller: titleController,  // 제목 컨트롤러 설정
-                          onChanged: _updateMemoTitle,  // 제목이 변경될 때 호출되는 함수
                         ),
-                        SizedBox(height: 16),  // 제목과 내용 사이의 간격
-                        // 메모의 내용을 입력하는 TextField
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Content',  // 라벨 텍스트 설정
-                              border: OutlineInputBorder(),  // 테두리 스타일 설정
+                        SizedBox(height: 4.0),  // title과 subtitle 사이의 간격
+                        Text(memos[index].content),
+                        SizedBox(height: 8.0),  // subtitle과 날짜/삭제 버튼 사이의 간격
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              DateFormat('yy, MMM d, HH:mm').format(memos[index].lastEdited),
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
                             ),
-                            controller: contentController,  // 내용 컨트롤러 설정
-                            onChanged: _updateMemoContent,  // 내용이 변경될 때 호출되는 함수
-                            maxLines: null,  // 줄 수 제한 없음
-                            expands: true,  // TextField가 가능한 모든 공간을 차지하도록 설정
-                            textAlignVertical: TextAlignVertical.top,  // 텍스트를 상단에 정렬
-                          ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () => onDelete(index),
+                              iconSize: 20.0,  // 아이콘 크기를 작게 설정
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  )
-                : Center(child: Text('Select a memo to edit')),  // 메모가 선택되지 않았을 때 표시되는 메시지
+                    onTap: () => onSelect(index),
+                  ),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton.icon(
+              onPressed: onAdd,
+              icon: Icon(Icons.add),
+              label: Text("Add Memo"),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
           ),
         ],
       ),

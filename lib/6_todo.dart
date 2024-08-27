@@ -48,9 +48,31 @@ class _ToDoListScreenState extends State<ToDoListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Flutter To-Do List'),
-        centerTitle: true,
+      appBar: PreferredSize(
+          preferredSize: Size.fromHeight(80.0), // AppBar의 높이 조정
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 239, 233, 214),
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(30.0), // 둥근 모서리 설정
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10.0,
+                  offset: Offset(0, 4), // 그림자 위치
+                ),
+              ],
+            ),
+            child: Center(
+              child: AppBar(
+                title: Text('Flutter To-Do List by ChatGPT'),
+                backgroundColor: Colors.transparent, // 투명하게 설정하여 Container의 색을 사용
+                elevation: 0, // 그림자 제거 (Container의 그림자를 사용)
+                centerTitle: true,
+              ),
+            ),
+          ),
       ),
       body: Column(
         children: [
@@ -95,7 +117,13 @@ class _ToDoListScreenState extends State<ToDoListScreen> {
                         index: index,
                         child: Card(
                           child: ListTile(
-                            title: Text(_toDoItems[index]),
+                            title: Row(
+                              children: [
+                                Icon(Icons.circle,size:10.0),
+                                SizedBox(width: 20.0),
+                                Text(_toDoItems[index]),
+                              ],
+                            ),
                             trailing: IconButton(
                               icon: Icon(Icons.delete),
                               onPressed: () => _removeToDoItem(index),

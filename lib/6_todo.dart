@@ -1,7 +1,30 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
+/// 데스크톱 환경에서 실행해야 File I/O가 정상 기능합니다.
+/// 크롬으로 실행하면 안됩니다. (Flutter Web은 Local File I/O를 지원하지 않습니다.)
+/// To-Do를 json 파일로 자동 저장하고 불러오는 To-Do List 앱.
+/// 문서 폴더에 저장됩니다. todo.json 파일을 찾아보세요.
 void main() {
   runApp(MyApp());
+}
+
+Future<void> saveJsonToFile(String jsonString, String fileName) async {
+  try {
+    // 1. 데이터 저장 경로 가져오기
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.path;
+    final file = File('$path/$fileName');
+
+    // 2. 파일에 JSON 문자열 저장
+    await file.writeAsString(jsonString);
+
+    debugPrint('JSON data saved to $path/$fileName');
+  } catch (e) {
+    debugPrint('Failed to save JSON data: $e');
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -23,17 +46,56 @@ class ToDoListScreen extends StatefulWidget {
   const ToDoListScreen({super.key});
 
   @override
-  _ToDoListScreenState createState() => _ToDoListScreenState();
+  ToDoListScreenState createState() => ToDoListScreenState();
 }
 
-class _ToDoListScreenState extends State<ToDoListScreen> {
+class ToDoListScreenState extends State<ToDoListScreen> {
   final List<String> _toDoItems = [];
   final TextEditingController _controller = TextEditingController();
+  final String jsonFileName = 'todo.json';
+
+
+Future<void> _loadJson() async {
+  try {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.path;
+    final file = File('$path/$jsonFileName');
+    if (await file.exists()) {
+      final jsonString = await file.readAsString();
+      debugPrint('Loaded JSON data: $jsonString');
+      final List<dynamic> json = jsonDecode(jsonString);
+      setState(() {
+        _toDoItems.clear();
+        _toDoItems.addAll(json.cast<String>());
+      });
+    }
+  } catch (e) {
+    debugPrint('Error loading JSON file: $e');
+  }
+}
+
+  void _saveJson() {
+    final jsonString = jsonEncode(_toDoItems);
+    saveJsonToFile(jsonString, jsonFileName).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('To-Do list saved to file'),
+        ),
+      );
+    }).catchError((error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to save To-Do list: $error'),
+      ),
+    );
+  });
+  }
 
   void _addToDoItem(String task) {
     if (task.isNotEmpty) {
       setState(() {
         _toDoItems.add(task);
+        _saveJson();
       });
       _controller.clear();
     }
@@ -42,9 +104,15 @@ class _ToDoListScreenState extends State<ToDoListScreen> {
   void _removeToDoItem(int index) {
     setState(() {
       _toDoItems.removeAt(index);
+      _saveJson();
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _loadJson();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,6 +176,7 @@ class _ToDoListScreenState extends State<ToDoListScreen> {
                       }
                       final item = _toDoItems.removeAt(oldIndex);
                       _toDoItems.insert(newIndex, item);
+                      _saveJson();
                     });
                   },
                   children: [

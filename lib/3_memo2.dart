@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Memo App',
+      title: 'Bulletin Board',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -36,7 +36,6 @@ class MemoListScreen extends StatefulWidget {
 }
 
 class _MemoListScreenState extends State<MemoListScreen> {
-  List<Memo> routines = [];
   List<Memo> done = [];
   List<Memo> ongoing = [];
   List<Memo> toDo = [];
@@ -88,11 +87,10 @@ class _MemoListScreenState extends State<MemoListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Memo App'),
+        title: Text('Bulletin Board'),
       ),
       body: Row(
         children: [
-          _buildMemoColumn('Routines', routines),
           _buildMemoColumn('Done', done),
           _buildMemoColumn('Ongoing', ongoing),
           _buildMemoColumn('To do', toDo),

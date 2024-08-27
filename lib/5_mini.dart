@@ -48,53 +48,61 @@ class _DragDropExampleState extends State<DragDropExample> {
     );
   }
 
-  Widget myList(List<String> list, String title) {
-    return DragTarget<String>(
-      onAcceptWithDetails: (data) {
-        setState(() {
-          list.add(data.data);
-        });
-      },
-      builder: (context, candidateData, rejectedData) {
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+Widget myWidget(String item, VoidCallback onDragCompleted) {
+  return Draggable<String>(
+    data: item,
+    feedback: Material(
+      child: Container(
+        width: 100,
+        color: Colors.blue,
+        child: Text(item, style: TextStyle(color: Colors.white)),
+      ),
+    ),
+    childWhenDragging: Container(
+      height: 50,
+      width: 100,
+      color: Colors.grey.shade200,
+    ),
+    onDragCompleted: onDragCompleted,
+    child: ListTile(
+      title: Text(item),
+    ),
+  );
+}
+
+Widget myList(List<String> list, String title) {
+  return DragTarget<String>(
+    onAcceptWithDetails: (data) {
+      setState(() {
+        list.add(data.data);
+      });
+    },
+    builder: (context, candidateData, rejectedData) {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: list.length,
+              itemBuilder: (context, index) {
+                return myWidget(
+                  list[index],
+                  () {
+                    setState(() {
+                      list.removeAt(index);
+                    });
+                  },
+                );
+              },
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: list.length,
-                itemBuilder: (context, index) {
-                  return Draggable<String>(
-                    data: list[index],
-                    feedback: Material(
-                      child: Container(
-                        width: 100,
-                        color: Colors.blue,
-                        child: Text(list[index], style: TextStyle(color: Colors.white)),
-                      ),
-                    ),
-                    childWhenDragging: Container(
-                      height: 50,
-                      width: 100,
-                      color: Colors.grey.shade200,
-                    ),
-                    onDragCompleted: () {
-                      setState(() {
-                        list.removeAt(index);
-                      });
-                    },
-                    child: ListTile(
-                      title: Text(list[index]),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+          ),
+        ],
+      );
+    },
+  );
+}
+
 }

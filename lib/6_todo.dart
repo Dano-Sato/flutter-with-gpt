@@ -54,41 +54,42 @@ class ToDoListScreenState extends State<ToDoListScreen> {
   final TextEditingController _controller = TextEditingController();
   final String jsonFileName = 'todo.json';
 
-
-Future<void> _loadJson() async {
-  try {
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    final file = File('$path/$jsonFileName');
-    if (await file.exists()) {
-      final jsonString = await file.readAsString();
-      debugPrint('Loaded JSON data: $jsonString');
-      final List<dynamic> json = jsonDecode(jsonString);
-      setState(() {
-        _toDoItems.clear();
-        _toDoItems.addAll(json.cast<String>());
-      });
+  Future<void> _loadJson() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final path = directory.path;
+      final file = File('$path/$jsonFileName');
+      if (await file.exists()) {
+        final jsonString = await file.readAsString();
+        debugPrint('Loaded JSON data: $jsonString');
+        final List<dynamic> json = jsonDecode(jsonString);
+        setState(() {
+          _toDoItems.clear();
+          _toDoItems.addAll(json.cast<String>());
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading JSON file: $e');
     }
-  } catch (e) {
-    debugPrint('Error loading JSON file: $e');
   }
-}
 
   void _saveJson() {
     final jsonString = jsonEncode(_toDoItems);
     saveJsonToFile(jsonString, jsonFileName).then((_) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('To-Do list saved to file'),
         ),
       );
     }).catchError((error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Failed to save To-Do list: $error'),
-      ),
-    );
-  });
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save To-Do list: $error'),
+        ),
+      );
+    });
   }
 
   void _addToDoItem(String task) {
@@ -109,38 +110,41 @@ Future<void> _loadJson() async {
   }
 
   @override
+
+  /// 앱이 시작될 때 저장된 JSON 파일을 불러옵니다.
   void initState() {
     super.initState();
     _loadJson();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-          preferredSize: Size.fromHeight(80.0), // AppBar의 높이 조정
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 239, 233, 214),
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(30.0), // 둥근 모서리 설정
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10.0,
-                  offset: Offset(0, 4), // 그림자 위치
-                ),
-              ],
+        preferredSize: Size.fromHeight(80.0), // AppBar의 높이 조정
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 239, 233, 214),
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(30.0), // 둥근 모서리 설정
             ),
-            child: Center(
-              child: AppBar(
-                title: Text('Flutter To-Do List by ChatGPT'),
-                backgroundColor: Colors.transparent, // 투명하게 설정하여 Container의 색을 사용
-                elevation: 0, // 그림자 제거 (Container의 그림자를 사용)
-                centerTitle: true,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10.0,
+                offset: Offset(0, 4), // 그림자 위치
               ),
+            ],
+          ),
+          child: Center(
+            child: AppBar(
+              title: Text('Flutter To-Do List by ChatGPT'),
+              backgroundColor: Colors.transparent, // 투명하게 설정하여 Container의 색을 사용
+              elevation: 0, // 그림자 제거 (Container의 그림자를 사용)
+              centerTitle: true,
             ),
           ),
+        ),
       ),
       body: Column(
         children: [
@@ -168,41 +172,40 @@ Future<void> _loadJson() async {
             child: _toDoItems.isEmpty
                 ? Center(child: Text('No tasks added'))
                 : ReorderableListView(
-                  buildDefaultDragHandles: false,
-                  onReorder: (int oldIndex, int newIndex) {
-                    setState(() {
-                      if (newIndex > oldIndex) {
-                        newIndex -= 1;
-                      }
-                      final item = _toDoItems.removeAt(oldIndex);
-                      _toDoItems.insert(newIndex, item);
-                      _saveJson();
-                    });
-                  },
-                  children: [
-                    for (int index = 0; index < _toDoItems.length; index++)
-                      ReorderableDragStartListener(
-                        key: ValueKey(_toDoItems[index]), // 각 항목에 고유한 키를 부여
-                        index: index,
-                        child: Card(
-                          child: ListTile(
-                            title: Row(
-                              children: [
-                                Icon(Icons.circle,size:10.0),
-                                SizedBox(width: 20.0),
-                                Text(_toDoItems[index]),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () => _removeToDoItem(index),
+                    buildDefaultDragHandles: false,
+                    onReorder: (int oldIndex, int newIndex) {
+                      setState(() {
+                        if (newIndex > oldIndex) {
+                          newIndex -= 1;
+                        }
+                        final item = _toDoItems.removeAt(oldIndex);
+                        _toDoItems.insert(newIndex, item);
+                        _saveJson();
+                      });
+                    },
+                    children: [
+                      for (int index = 0; index < _toDoItems.length; index++)
+                        ReorderableDragStartListener(
+                          key: ValueKey(_toDoItems[index]), // 각 항목에 고유한 키를 부여
+                          index: index,
+                          child: Card(
+                            child: ListTile(
+                              title: Row(
+                                children: [
+                                  Icon(Icons.circle, size: 10.0),
+                                  SizedBox(width: 20.0),
+                                  Text(_toDoItems[index]),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () => _removeToDoItem(index),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-
+                    ],
+                  ),
           ),
         ],
       ),

@@ -35,168 +35,142 @@ class MemoListScreen extends StatefulWidget {
 
 class _MemoListScreenState extends State<MemoListScreen> {
   List<Memo> memos = [];
+  int? selectedMemoIndex;
+  TextEditingController? titleController;
+  TextEditingController? contentController;
 
-  void _addMemo(String title, String content) {
+  void _addMemo() {
     setState(() {
-      memos.add(Memo(title: title, content: content));
+      memos.add(Memo(title: 'New Memo', content: ''));
+      selectedMemoIndex = memos.length - 1;
+      _updateControllers();
     });
   }
 
-  void _editMemo(int index, String newTitle, String newContent) {
-    setState(() {
-      memos[index].title = newTitle;
-      memos[index].content = newContent;
-    });
+  void _updateControllers() {
+    if (selectedMemoIndex != null) {
+      titleController = TextEditingController(text: memos[selectedMemoIndex!].title);
+      contentController = TextEditingController(text: memos[selectedMemoIndex!].content);
+    }
+  }
+
+  void _updateMemoTitle(String title) {
+    if (selectedMemoIndex != null) {
+      setState(() {
+        memos[selectedMemoIndex!].title = title;
+      });
+    }
+  }
+
+  void _updateMemoContent(String content) {
+    if (selectedMemoIndex != null) {
+      setState(() {
+        memos[selectedMemoIndex!].content = content;
+      });
+    }
   }
 
   void _deleteMemo(int index) {
     setState(() {
       memos.removeAt(index);
+      selectedMemoIndex = null;
+      titleController = null;
+      contentController = null;
     });
-  }
-
-  Future<void> _showAddMemoDialog() async {
-    String title = '';
-    String content = '';
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add a new memo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                onChanged: (value) {
-                  title = value;
-                },
-                decoration: InputDecoration(hintText: "Enter title here"),
-              ),
-              TextField(
-                onChanged: (value) {
-                  content = value;
-                },
-                decoration: InputDecoration(hintText: "Enter content here"),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Add'),
-              onPressed: () {
-                if (title.isNotEmpty && content.isNotEmpty) {
-                  _addMemo(title, content);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _showEditMemoDialog(int index) async {
-    String editedTitle = memos[index].title;
-    String editedContent = memos[index].content;
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Edit memo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: TextEditingController(text: editedTitle),
-                onChanged: (value) {
-                  editedTitle = value;
-                },
-                decoration: InputDecoration(hintText: "Enter title here"),
-              ),
-              TextField(
-                controller: TextEditingController(text: editedContent),
-                onChanged: (value) {
-                  editedContent = value;
-                },
-                decoration: InputDecoration(hintText: "Enter content here"),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Save'),
-              onPressed: () {
-                if (editedTitle.isNotEmpty && editedContent.isNotEmpty) {
-                  _editMemo(index, editedTitle, editedContent);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
- return Scaffold(
-    appBar: AppBar(
-      title: Text('Memo App'),
-    ),
-    body: Column(
-      children: [
-        Flexible(
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: memos.length,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: EdgeInsets.all(8.0),
-                elevation: 4,
-                child: ListTile(
-                  title: Text(memos[index].title),
-                  subtitle: Text(memos[index].content),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () => _showEditMemoDialog(index),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => _deleteMemo(index),
-                      ),
-                    ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Memo App'),
+      ),
+      body: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Column(
+              children: [
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: memos.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        margin: EdgeInsets.all(8.0),
+                        elevation: 4,
+                        child: ListTile(
+                          title: Text(memos[index].title),
+                          subtitle: Text(memos[index].content),
+                          onTap: () {
+                            setState(() {
+                              selectedMemoIndex = index;
+                              _updateControllers();
+                            });
+                          },
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () => _deleteMemo(index),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-              );
-            },
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton.icon(
+                    onPressed: _addMemo,
+                    icon: Icon(Icons.add),
+                    label: Text("Add Memo"),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: FloatingActionButton(
-            onPressed: _showAddMemoDialog,
-            child: Icon(Icons.add),
+          VerticalDivider(), // 구분선 추가
+          Expanded(
+            flex: 3,
+            child: selectedMemoIndex != null
+                ? Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          decoration: InputDecoration(
+                            labelText: 'Title',
+                            border: OutlineInputBorder(),
+                          ),
+                          controller: titleController,
+                          onChanged: _updateMemoTitle,
+                        ),
+                        SizedBox(height: 16),
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Content',
+                              border: OutlineInputBorder(),
+                            ),
+                            controller: contentController,
+                            onChanged: _updateMemoContent,
+                            maxLines: null,
+                            expands: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : Center(child: Text('Select a memo to edit')),
           ),
-        ),
-      ],
-    ),
-  );}
+        ],
+      ),
+    );
+  }
 }

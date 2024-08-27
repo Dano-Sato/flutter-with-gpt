@@ -48,24 +48,43 @@ class _DragDropExampleState extends State<DragDropExample> {
     );
   }
 
-Widget myWidget(String item, VoidCallback onDragCompleted) {
+Offset MydragAnchorStrategy(
+    Draggable<Object> d, BuildContext context, Offset point) {
+  return Offset(d.feedbackOffset.dx+100, d.feedbackOffset.dy+25);
+}
+
+Widget myCard(String item, VoidCallback onDragCompleted) {
   return Draggable<String>(
     data: item,
-    feedback: Material(
+    dragAnchorStrategy: MydragAnchorStrategy,
+    feedback: Card( // 드래그할 때 옮겨지는 상태의 위젯
       child: Container(
-        width: 100,
-        color: Colors.blue,
-        child: Text(item, style: TextStyle(color: Colors.white)),
+        height: 50,
+        width: 200,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,  // 그림자 색상
+              blurRadius: 8.0,  // 그림자의 흐림 정도
+              offset: Offset(0, 4),  // 그림자의 위치
+            ),
+          ],
+        ),
+        child: Center(child: Text(item, style: TextStyle(color: Colors.black))),
       ),
     ),
-    childWhenDragging: Container(
+    childWhenDragging: Container( // 드래그 중에는 이 위젯이 드래그 대상 대신 표시됨
       height: 50,
       width: 100,
-      color: Colors.grey.shade200,
+      color: Colors.white,
     ),
     onDragCompleted: onDragCompleted,
-    child: ListTile(
-      title: Text(item),
+    child: Card(
+      child: ListTile(
+        title: Text(item),
+      ),
     ),
   );
 }
@@ -88,7 +107,7 @@ Widget myList(List<String> list, String title) {
             child: ListView.builder(
               itemCount: list.length,
               itemBuilder: (context, index) {
-                return myWidget(
+                return myCard(
                   list[index],
                   () {
                     setState(() {

@@ -48,15 +48,17 @@ class _DragDropExampleState extends State<DragDropExample> {
     );
   }
 
-Offset MydragAnchorStrategy(
+/// 드래그할 때 옮겨지는 상태의 위젯의 위치를 조정하는 함수
+Offset myDragAnchorStrategy(
     Draggable<Object> d, BuildContext context, Offset point) {
   return Offset(d.feedbackOffset.dx+100, d.feedbackOffset.dy+25);
 }
 
+/// 드래그가 가능한 카드 위젯.
 Widget myCard(String item, VoidCallback onDragCompleted) {
   return Draggable<String>(
     data: item,
-    dragAnchorStrategy: MydragAnchorStrategy,
+    dragAnchorStrategy: myDragAnchorStrategy,
     feedback: Card( // 드래그할 때 옮겨지는 상태의 위젯
       child: Container(
         height: 50,
@@ -78,7 +80,7 @@ Widget myCard(String item, VoidCallback onDragCompleted) {
     childWhenDragging: Container( // 드래그 중에는 이 위젯이 드래그 대상 대신 표시됨
       height: 50,
       width: 100,
-      color: Colors.white,
+      color: Colors.transparent,
     ),
     onDragCompleted: onDragCompleted,
     child: Card(
@@ -125,3 +127,6 @@ Widget myList(List<String> list, String title) {
 }
 
 }
+
+
+

@@ -181,8 +181,6 @@ class _MemoListScreenState extends State<MemoListScreen> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
@@ -207,7 +205,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
   ),
 ),
       body: Column(
-        children: [ SizedBox(height: 20),
+        children: [ SizedBox(height: 50),
       Expanded(
         child: Row(
           children: [

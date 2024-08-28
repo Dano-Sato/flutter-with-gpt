@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:flutter/services.dart';  // 키보드 이벤트를 처리하기 위해 추가
+import 'package:flutter/services.dart'; // 키보드 이벤트를 처리하기 위해 추가
 
 /// 비디오 파일 뷰어. 키입력을 통해 북마크를 추가할 수 있는 앱.
 void main() async {
@@ -42,13 +42,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   String? _videoPath;
   final List<Duration> _bookmarks = [];
 
-  final FocusNode _focusNode = FocusNode();  // FocusNode를 사용하여 키보드 입력 감지
+  final FocusNode _focusNode = FocusNode(); // FocusNode를 사용하여 키보드 입력 감지
 
   @override
   void initState() {
     super.initState();
     _initializePlayer();
-    _focusNode.requestFocus();  // 초기 포커스 설정
+    _focusNode.requestFocus(); // 초기 포커스 설정
   }
 
   void _initializePlayer() {
@@ -57,7 +57,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   }
 
   Future<void> _pickVideo() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
       _videoPath = result.files.single.path;
       if (_videoPath != null) {
@@ -83,21 +84,24 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       _bookmarks.add(currentPosition);
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Bookmark added at ${currentPosition.toString().split('.').first}')),
+      SnackBar(
+          content: Text(
+              'Bookmark added at ${currentPosition.toString().split('.').first}')),
     );
   }
 
   void _seekToBookmark(Duration bookmark) {
     _player!.seek(bookmark);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Seeked to ${bookmark.toString().split('.').first}')),
+      SnackBar(
+          content: Text('Seeked to ${bookmark.toString().split('.').first}')),
     );
   }
 
   @override
   void dispose() {
     _player?.dispose();
-    _focusNode.dispose();  // FocusNode 해제
+    _focusNode.dispose(); // FocusNode 해제
     super.dispose();
   }
 
@@ -114,11 +118,25 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         ],
       ),
       body: KeyboardListener(
-        focusNode: _focusNode,  // 키보드 입력 감지
+        focusNode: _focusNode, // 키보드 입력 감지
         onKeyEvent: (KeyEvent event) {
           if (event is KeyDownEvent) {
             if (event.logicalKey == LogicalKeyboardKey.keyB) {
-              _addBookmark();  // 'B' 키를 눌러 북마크 추가
+              _addBookmark(); // 'B' 키를 눌러 북마크 추가
+            }
+            if (event.logicalKey.keyId >= LogicalKeyboardKey.digit1.keyId &&
+                event.logicalKey.keyId <= LogicalKeyboardKey.digit9.keyId) {
+              int index =
+                  event.logicalKey.keyId - LogicalKeyboardKey.digit1.keyId;
+              if (index < _bookmarks.length) {
+                try {
+                  _seekToBookmark(_bookmarks[index]);
+                } catch (e) {
+                  debugPrint('Failed to seek to bookmark: $e');
+                }
+              } else {
+                debugPrint('No bookmark available for this number');
+              }
             }
           }
         },

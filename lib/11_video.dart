@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:flutter/services.dart'; // 키보드 이벤트를 처리하기 위해 추가
+import 'package:shared_preferences/shared_preferences.dart'; // 북마크를 저장하기 위해 추가
+import 'dart:convert'; // JSON Encoding/Decoding을 위해 추가
 
 /// 비디오 파일 뷰어. 키입력을 통해 북마크를 추가할 수 있는 앱.
 void main() async {
@@ -30,6 +32,48 @@ class MyApp extends StatelessWidget {
 }
 
 
+
+/// 북마크를 관리하는 클래스입니다.
+class BookmarkManager {
+  Map<String, List<Duration>> myBookmarks = {};
+
+  Future<void> saveBookmarks() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Map<Duration>을 List<int> (seconds로)로 변환 후, JSON으로 직렬화
+    Map<String, List<int>> serializableBookmarks = myBookmarks.map((path, durations) {
+      return MapEntry(path, durations.map((d) => d.inSeconds).toList());
+    });
+
+    String jsonString = jsonEncode(serializableBookmarks);
+    await prefs.setString('bookmarks', jsonString);
+  }
+
+  Future<void> loadBookmarks() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? jsonString = prefs.getString('bookmarks');
+
+    if (jsonString != null) {
+      // JSON을 파싱하여 Map<String, List<int>>로 변환 후, 다시 Duration으로 변환
+      Map<String, List<dynamic>> decoded = jsonDecode(jsonString);
+      myBookmarks = decoded.map((path, durations) {
+        return MapEntry(path, durations.map((s) => Duration(seconds: s as int)).toList());
+      });
+    }
+  }
+
+  void addBookmark(String filePath, Duration bookmark) {
+    if (myBookmarks.containsKey(filePath)) {
+      myBookmarks[filePath]!.add(bookmark);
+    } else {
+      myBookmarks[filePath] = [bookmark];
+    }
+  }
+
+  List<Duration>? getBookmarks(String filePath) {
+    return myBookmarks[filePath];
+  }
+}
 
 /// 해당 폴더의 비디오 파일 목록을 보여주는 Drawer 위젯입니다.
 class VideoListDrawer extends StatelessWidget {
@@ -114,6 +158,7 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
       _videoPath = result.files.single.path;
       if (_videoPath != null) {
 
+        /// 해당 폴더의 비디오 파일 목록을 가져옵니다.
         final dir = Directory(_videoPath!).parent;
         final List<String> videoFiles = dir
             .listSync()
@@ -128,7 +173,7 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
           _videoFiles = videoFiles;
         });
 
-
+        /// 비디오 파일을 열고 북마크 리스트를 초기화합니다.
         await _initializeVideo();
       }
     }
@@ -170,6 +215,8 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
   /// 현재 비디오 플레이어를 북마크 시간으로 이동시킵니다.
   void _seekToBookmark(Duration bookmark) {
     _player!.seek(bookmark);
+
+    /// 스낵바를 통해 북마크 시간을 표시합니다.
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -243,7 +290,7 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
             child: FloatingActionButton(
               backgroundColor: Colors.white.withOpacity(0.5),
               onPressed: _pickVideo,
-              heroTag: "btn1", // 각 버튼에 고유한 heroTag를 설정합니다.
+              heroTag: "btn1", // 각 버튼에 고유한 heroTag를 설정합니다. heroTag를 설정하지 않으면 애니메이션 오류가 발생할 수 있습니다.
               child: Icon(Icons.video_library),
             ),
           ),
@@ -267,6 +314,7 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
             if (event.logicalKey == LogicalKeyboardKey.keyQ) {
               _addBookmark(); // 'Q' 키를 눌러 북마크 추가
             }
+            /// 숫자 키를 눌러 해당 북마크로 이동
             if (event.logicalKey.keyId >= LogicalKeyboardKey.digit1.keyId &&
                 event.logicalKey.keyId <= LogicalKeyboardKey.digit9.keyId) {
               int index =
@@ -285,7 +333,7 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
         },
         child: Stack(
           children: [
-            Center(
+            Center( /// 비디오 플레이어 위젯. 화면을 꽉 채우도록 설정
               child: _controller != null
                   ? SizedBox(
                       width: MediaQuery.of(context).size.width, // 화면의 너비에 맞추기
@@ -301,7 +349,7 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
               Positioned(
                 top: 10,
                 right: 10,
-                child: Column(
+                child: Column( /// 북마크 목록을 표시하는 Column 위젯
                   children: _bookmarks.map((bookmark) {
                     // 북마크 시간을 분:초 형식으로 변환
                     String formattedDuration =

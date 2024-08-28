@@ -30,7 +30,9 @@ lib 폴더에 GPT들을 존내 갈군 결과물들이 있습니다.
 11. 더 쓸만한 비디오 뷰어입니다. 비디오를 실행 가능하며, 왼쪽 패널에 비디오 목록이 등장하고, 북마크를 통해 특정 비디오 지점으로 되돌아가는게 가능합니다.
 
 
+# 다뤄진 위젯 목록
 
+Container, Sizedbox, Column, Row, Center, AppBar, DefaultTabController, TabBar, Padding, EdgeInsets, Icon, FloatingActionButton, AlertDialog, TextButton, AnimatedContainer, VerticalDivider, TextField, ElevatedButton, SnackBar, ListView, ListTile, Draggable, DragTarget, PreferredSize,BoxShadow, ReorderableListView, Card, IconButton, BottomNavigationBar, Drawer, ExpansionTile, Stepper, AnimatedPositioned, GridView,
 
 
 

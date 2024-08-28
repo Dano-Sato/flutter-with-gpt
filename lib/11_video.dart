@@ -8,6 +8,10 @@ import 'package:flutter/services.dart'; // 키보드 이벤트를 처리하기 �
 import 'package:shared_preferences/shared_preferences.dart'; // 북마크를 저장하기 위해 추가
 import 'dart:convert'; // JSON Encoding/Decoding을 위해 추가
 
+
+/// todo:
+/// 1. 북마크매니저를 통해 북마크를 실제로 저장하고 뷰어 실행시 불러와야 합니다.
+
 /// 비디오 파일 뷰어. 키입력을 통해 북마크를 추가할 수 있는 앱.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -39,6 +39,7 @@ dependencies:
   media_kit_video: ^1.2.1
   media_kit_libs_video: ^1.0.3
   video_thumbnail: ^0.5.3
+  provider: ^6.0.1
   
 
 

@@ -5,8 +5,8 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();  // Flutter 엔진 초기화
-  MediaKit.ensureInitialized();         // media_kit 패키지 초기화
+  WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
 
   runApp(MyApp());
 }
@@ -38,51 +38,51 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   VideoController? _controller;
   String? _videoPath;
 
+  @override
+  void initState() {
+    super.initState();
+    _initializePlayer();
+  }
+
+  void _initializePlayer() {
+    _player = Player();
+    _controller = VideoController(_player!);
+    _player!.setPlaylistMode(PlaylistMode.loop);
+  }
+
   Future<void> _pickVideo() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
     if (result != null) {
       _videoPath = result.files.single.path;
       if (_videoPath != null) {
-        _initializeVideo();
+        await _initializeVideo();
       }
     }
   }
 
   Future<void> _initializeVideo() async {
     if (_videoPath != null) {
-      // 기존의 플레이어가 있다면 해제합니다.
-      _player?.dispose();
+      try {
+        await _player!.open(Media(_videoPath!));
 
-      // 새로운 Player와 VideoController 생성
-      _player = Player();
-      _controller = VideoController(_player!);
-
-      // 비디오 파일 열기
-      await _player!.open(Media(_videoPath!));
-
-      // UI 업데이트
-      setState(() {});
+        setState(() {
+          // 화면을 갱신하여 비디오 재생 준비 완료
+        });
+      } catch (e) {
+        print("Error opening video: $e");
+      }
     }
   }
 
   @override
   void dispose() {
-    _player?.dispose(); // Player를 해제합니다.
+    _player?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Media Kit Example'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.video_library),
-            onPressed: _pickVideo,
-          ),
-        ],
-      ),
       body: Center(
         child: _controller != null
             ? AspectRatio(
@@ -93,12 +93,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       ),
       floatingActionButton: _player != null
           ? FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  _player!.state.playing ? _player!.pause() : _player!.play();
-                });
-              },
-              child: Icon(_player!.state.playing ? Icons.pause : Icons.play_arrow),
+              onPressed: _pickVideo,
+              child: Icon(Icons.video_library),
             )
           : null,
     );

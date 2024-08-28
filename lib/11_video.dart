@@ -33,10 +33,10 @@ class VideoPlayerPage extends StatefulWidget {
   const VideoPlayerPage({super.key});
 
   @override
-  _VideoPlayerPageState createState() => _VideoPlayerPageState();
+  VideoPlayerPageState createState() => VideoPlayerPageState();
 }
 
-class _VideoPlayerPageState extends State<VideoPlayerPage> {
+class VideoPlayerPageState extends State<VideoPlayerPage> {
   Player? _player;
   VideoController? _controller;
   String? _videoPath;
@@ -56,6 +56,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     _controller = VideoController(_player!);
   }
 
+  /// 비디오 파일 선택
   Future<void> _pickVideo() async {
     FilePickerResult? result =
         await FilePicker.platform.pickFiles(type: FileType.video);
@@ -67,6 +68,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
+  /// 비디오 파일을 열고 북마크 리스트를 초기화합니다.
   Future<void> _initializeVideo() async {
     if (_videoPath != null) {
       try {
@@ -80,6 +82,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
+  /// 북마크 추가
   void _addBookmark() {
     final currentPosition = _player!.state.position;
     setState(() {
@@ -98,18 +101,21 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     );
   }
 
+  /// 현재 비디오 플레이어를 북마크 시간으로 이동시킵니다.
   void _seekToBookmark(Duration bookmark) {
     _player!.seek(bookmark);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Center(child: Text('Seeked to ${bookmark.toString().split('.').first}')),
+        content: Center(
+            child: Text('Seeked to ${bookmark.toString().split('.').first}')),
         backgroundColor: Colors.transparent,
         elevation: 10.0,
       ),
     );
   }
 
+  /// 북마크 삭제
   void _removeBookmark(Duration bookmark) {
     setState(() {
       _bookmarks.remove(bookmark);
@@ -134,8 +140,50 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Video Player Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.video_library),
+              title: Text('Pick Video'),
+              onTap: _pickVideo,
+            ),
+            ListTile(
+              leading: Icon(Icons.bookmark),
+              title: Text('Add Bookmark'),
+              onTap: _addBookmark,
+            ),
+          ],
+        ),
+      ),
       floatingActionButton: Stack(
         children: <Widget>[
+          // 왼쪽 위에 Drawer 열기 버튼
+          Positioned(
+            top: 16,
+            left: 16,
+            child: Builder(
+              builder: (context) => FloatingActionButton(
+                backgroundColor: Colors.white.withOpacity(0.5),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+                heroTag: "drawerBtn",
+                child: Icon(Icons.menu),
+              ),
+            ),
+          ),
           // 첫 번째 FloatingActionButton (비디오 선택)
           Positioned(
             bottom: 16,

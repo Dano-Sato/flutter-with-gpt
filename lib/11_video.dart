@@ -88,8 +88,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-            'Bookmark added at ${currentPosition.toString().split('.').first}'),
+        content: Center(
+          child: Text(
+              'Bookmark added at ${currentPosition.toString().split('.').first}'),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 10.0,
       ),
@@ -101,7 +103,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Seeked to ${bookmark.toString().split('.').first}'),
+        content: Center(child: Text('Seeked to ${bookmark.toString().split('.').first}')),
         backgroundColor: Colors.transparent,
         elevation: 10.0,
       ),
@@ -115,7 +117,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Bookmark removed'),
+        content: Center(child: Text('Bookmark removed')),
         backgroundColor: Colors.transparent,
         elevation: 10.0,
       ),
@@ -132,9 +134,31 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: _pickVideo,
-        child: Icon(Icons.video_library),
+      floatingActionButton: Stack(
+        children: <Widget>[
+          // 첫 번째 FloatingActionButton (비디오 선택)
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              backgroundColor: Colors.white.withOpacity(0.5),
+              onPressed: _pickVideo,
+              heroTag: "btn1", // 각 버튼에 고유한 heroTag를 설정합니다.
+              child: Icon(Icons.video_library),
+            ),
+          ),
+          // 두 번째 FloatingActionButton (북마크 추가)
+          Positioned(
+            bottom: 80, // 첫 번째 버튼 위에 배치하기 위해 위치 조정
+            right: 16,
+            child: FloatingActionButton(
+              backgroundColor: Colors.white.withOpacity(0.5),
+              onPressed: _addBookmark,
+              heroTag: "btn2", // 각 버튼에 고유한 heroTag를 설정합니다.
+              child: Icon(Icons.bookmark),
+            ),
+          ),
+        ],
       ),
       body: KeyboardListener(
         focusNode: _focusNode, // 키보드 입력 감지

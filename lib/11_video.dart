@@ -29,6 +29,46 @@ class MyApp extends StatelessWidget {
   }
 }
 
+
+class VideoListDrawer extends StatelessWidget {
+  final List<String> videoFiles;
+  final Function(String) onVideoSelected;
+
+  const VideoListDrawer({super.key, 
+    required this.videoFiles,
+    required this.onVideoSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: <Widget>[
+        SizedBox(
+          height: 70,
+          child: DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.blue,
+            ),
+            child: Text(
+              'Video Player Menu',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+        ),
+        ...videoFiles.map((file) => ListTile(
+          leading: Icon(Icons.video_library),
+          title: Text(file.split('/').last), // 파일 이름만 표시
+          onTap: () => onVideoSelected(file),
+        )),
+      ],
+    );
+  }
+}
+
 class VideoPlayerPage extends StatefulWidget {
   const VideoPlayerPage({super.key});
 
@@ -40,6 +80,7 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
   Player? _player;
   VideoController? _controller;
   String? _videoPath;
+  List<String> _videoFiles = [];
   final List<Duration> _bookmarks = [];
 
   final FocusNode _focusNode = FocusNode(); // FocusNode를 사용하여 키보드 입력 감지
@@ -58,11 +99,29 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
 
   /// 비디오 파일 선택
   Future<void> _pickVideo() async {
+
+
     FilePickerResult? result =
-        await FilePicker.platform.pickFiles(type: FileType.video);
+        await FilePicker.platform.pickFiles(type: FileType.video, allowMultiple: false);
     if (result != null) {
       _videoPath = result.files.single.path;
       if (_videoPath != null) {
+
+        final dir = Directory(_videoPath!).parent;
+        final List<String> videoFiles = dir
+            .listSync()
+            .where((file) =>
+                file.path.endsWith('.mp4') ||
+                file.path.endsWith('.mkv') ||
+                file.path.endsWith('.avi'))
+            .map((file) => file.path)
+            .toList();
+
+        setState(() {
+          _videoFiles = videoFiles;
+        });
+
+
         await _initializeVideo();
       }
     }
@@ -137,36 +196,22 @@ class VideoPlayerPageState extends State<VideoPlayerPage> {
     super.dispose();
   }
 
+  
+
+
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Video Player Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.video_library),
-              title: Text('Pick Video'),
-              onTap: _pickVideo,
-            ),
-            ListTile(
-              leading: Icon(Icons.bookmark),
-              title: Text('Add Bookmark'),
-              onTap: _addBookmark,
-            ),
-          ],
+        child: VideoListDrawer(
+          videoFiles: _videoFiles,
+          onVideoSelected: (path) {
+            Navigator.of(context).pop(); // Drawer를 닫음
+            _videoPath = path;
+            _initializeVideo(); // 선택한 비디오 재생
+          },
         ),
       ),
       floatingActionButton: Stack(

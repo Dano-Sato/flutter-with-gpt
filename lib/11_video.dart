@@ -71,9 +71,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     if (_videoPath != null) {
       try {
         await _player!.open(Media(_videoPath!));
-        setState(() {});
+        setState(() {
+          _bookmarks.clear(); // 북마크 리스트 초기화
+        });
       } catch (e) {
-        print("Error opening video: $e");
+        debugPrint("Error opening video: $e");
       }
     }
   }
@@ -100,6 +102,20 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Seeked to ${bookmark.toString().split('.').first}'),
+        backgroundColor: Colors.transparent,
+        elevation: 10.0,
+      ),
+    );
+  }
+
+  void _removeBookmark(Duration bookmark) {
+    setState(() {
+      _bookmarks.remove(bookmark);
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Bookmark removed'),
         backgroundColor: Colors.transparent,
         elevation: 10.0,
       ),
@@ -143,18 +159,48 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             }
           }
         },
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: Center(
-                child: _controller != null
-                    ? AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: Video(controller: _controller!),
-                      )
-                    : Text('No video selected.'),
-              ),
+            Center(
+              child: _controller != null
+                  ? SizedBox(
+                      width: MediaQuery.of(context).size.width, // 화면의 너비에 맞추기
+                      height: MediaQuery.of(context).size.height, // 화면의 높이에 맞추기
+                      child: Video(
+                        controller: _controller!,
+                        fit: BoxFit.contain, // 비디오를 화면에 꽉 차도록 설정 (비율 유지)
+                      ),
+                    )
+                  : const Text('No video selected.'),
             ),
+            if (_bookmarks.isNotEmpty)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Column(
+                  children: _bookmarks.map((bookmark) {
+                    int index = _bookmarks.indexOf(bookmark) + 1;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: GestureDetector(
+                        onTap: () => _seekToBookmark(bookmark),
+                        onSecondaryTap: () => _removeBookmark(bookmark),
+                        child: Container(
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Text(
+                            'Bookmark $index',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
           ],
         ),
       ),

@@ -83,18 +83,26 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     setState(() {
       _bookmarks.add(currentPosition);
     });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(
-              'Bookmark added at ${currentPosition.toString().split('.').first}')),
+        content: Text(
+            'Bookmark added at ${currentPosition.toString().split('.').first}'),
+        backgroundColor: Colors.transparent,
+        elevation: 10.0,
+      ),
     );
   }
 
   void _seekToBookmark(Duration bookmark) {
     _player!.seek(bookmark);
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text('Seeked to ${bookmark.toString().split('.').first}')),
+        content: Text('Seeked to ${bookmark.toString().split('.').first}'),
+        backgroundColor: Colors.transparent,
+        elevation: 10.0,
+      ),
     );
   }
 
@@ -108,21 +116,16 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Video Bookmark Example'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.video_library),
-            onPressed: _pickVideo,
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: _pickVideo,
+        child: Icon(Icons.video_library),
       ),
       body: KeyboardListener(
         focusNode: _focusNode, // 키보드 입력 감지
         onKeyEvent: (KeyEvent event) {
           if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.keyB) {
-              _addBookmark(); // 'B' 키를 눌러 북마크 추가
+            if (event.logicalKey == LogicalKeyboardKey.keyQ) {
+              _addBookmark(); // 'Q' 키를 눌러 북마크 추가
             }
             if (event.logicalKey.keyId >= LogicalKeyboardKey.digit1.keyId &&
                 event.logicalKey.keyId <= LogicalKeyboardKey.digit9.keyId) {
@@ -152,26 +155,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     : Text('No video selected.'),
               ),
             ),
-            if (_bookmarks.isNotEmpty)
-              SizedBox(
-                height: 100,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _bookmarks.length,
-                  itemBuilder: (context, index) {
-                    final bookmark = _bookmarks[index];
-                    return GestureDetector(
-                      onTap: () => _seekToBookmark(bookmark),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Chip(
-                          label: Text('Bookmark ${index + 1}'),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
           ],
         ),
       ),

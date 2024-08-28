@@ -30,6 +30,8 @@ class MyApp extends StatelessWidget {
 }
 
 
+
+/// 해당 폴더의 비디오 파일 목록을 보여주는 Drawer 위젯입니다.
 class VideoListDrawer extends StatelessWidget {
   final List<String> videoFiles;
   final Function(String) onVideoSelected;
@@ -41,6 +43,11 @@ class VideoListDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 원본 리스트를 복사하여 정렬
+    List<String> sortedVideoFiles = List.from(videoFiles);
+    sortedVideoFiles.sort((a, b) => a.split('\\').last.compareTo(b.split('\\').last));
+
+
     return ListView(
       padding: EdgeInsets.zero,
       children: <Widget>[
@@ -59,9 +66,9 @@ class VideoListDrawer extends StatelessWidget {
             ),
           ),
         ),
-        ...videoFiles.map((file) => ListTile(
+        ...sortedVideoFiles.map((file) => ListTile(
           leading: Icon(Icons.video_library),
-          title: Text(file.split('/').last), // 파일 이름만 표시
+          title: Text(file.split('\\').last), // 파일 이름만 표시
           onTap: () => onVideoSelected(file),
         )),
       ],

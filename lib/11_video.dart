@@ -179,20 +179,20 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                 right: 10,
                 child: Column(
                   children: _bookmarks.map((bookmark) {
-                    int index = _bookmarks.indexOf(bookmark) + 1;
+                    // 북마크 시간을 분:초 형식으로 변환
+                    String formattedDuration =
+                        "${bookmark.inMinutes.remainder(60).toString().padLeft(2, '0')}:${bookmark.inSeconds.remainder(60).toString().padLeft(2, '0')}";
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: GestureDetector(
-                        onTap: () => _seekToBookmark(bookmark),
                         onSecondaryTap: () => _removeBookmark(bookmark),
-                        child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(8.0),
+                        child: ElevatedButton(
+                          onPressed: () => _seekToBookmark(bookmark),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black.withOpacity(0.2),
                           ),
                           child: Text(
-                            'Bookmark $index',
+                            formattedDuration,
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),
